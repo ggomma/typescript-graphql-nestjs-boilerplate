@@ -1,0 +1,7 @@
+import { Repository } from 'typeorm';
+import { EntityRepository } from 'typeorm/decorator/EntityRepository';
+
+import { {{pluralCapName}}Entity } from '../entities/{{pluralName}}.entity';
+
+@EntityRepository({{pluralCapName}}Entity)
+export class {{capName}}Repository extends Repository<{{pluralCapName}}Entity> {}

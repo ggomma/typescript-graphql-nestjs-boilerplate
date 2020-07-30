@@ -1,0 +1,93 @@
+import { CURSOR_AT_MAP } from '@/config';
+import {
+  Find{{capName}}Input,
+  PageInfo,
+  PaginationInput,
+  {{pluralCapName}}Connection,
+} from '@/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+
+import { Create{{capName}}Dto } from './dto/create-{{name}}.dto';
+import { Find{{capName}}Dto } from './dto/find-{{name}}.dto';
+import { Find{{pluralCapName}}PaginationDto } from './dto/find-{{pluralName}}.dto';
+import { {{pluralCapName}}Entity } from './entities/{{pluralName}}.entity';
+import { {{pluralCapName}}Service } from './{{pluralName}}.service';
+
+
+@Resolver('{{capName}}')
+export class {{pluralCapName}}Resolver {
+  constructor(private {{pluralName}}Service: {{pluralCapName}}Service) {}
+
+  @Query()
+  async get{{capName}}(
+    @Args('input') input: Find{{capName}}Input,
+  ): Promise<{{pluralCapName}}Entity | undefined> {
+    const query = new Find{{capName}}Dto(input);
+    return this.{{pluralName}}Service.find{{capName}}(query);
+  }
+
+  @Query()
+  async get{{pluralCapName}}(
+    @Args('pagination') pagination: PaginationInput,
+  ): Promise<{{pluralCapName}}Connection | null> {
+    const find{{pluralCapName}}PaginationDto = new Find{{pluralCapName}}PaginationDto(pagination);
+    const { {{pluralName}}, total } = await this.{{pluralName}}Service.find{{pluralCapName}}({
+      pagination: find{{pluralCapName}}PaginationDto,
+    });
+
+    const cursor = CURSOR_AT_MAP[pagination.cursorAt || 'ID'];
+
+    const edges = {{pluralName}}.map(({{name}}) => ({
+      node: { ...{{name}}, _id: `${ {{name}}._id}` },
+      cursor: `${ {{name}}[cursor]}`,
+    }));
+
+    const pageInfo: PageInfo = {
+      endCursor: {{pluralName}}.length ? {{pluralName}}[{{pluralName}}.length - 1][cursor] : 0,
+      startCursor: {{pluralName}}.length ? {{pluralName}}[0][cursor] : 0,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    };
+    if (total === {{pluralName}}.length) {
+      pageInfo.hasNextPage = false;
+      pageInfo.hasPreviousPage = false;
+    } else if (pagination.last) {
+      pageInfo.hasPreviousPage = true;
+      pageInfo.hasNextPage = false;
+    } else {
+      pageInfo.hasNextPage = true;
+      pageInfo.hasPreviousPage = false;
+    }
+
+    return {
+      edges,
+      pageInfo,
+      totalCount: total,
+    };
+  }
+
+  @Mutation()
+  async create{{capName}}(
+    @Args('input') data: Create{{capName}}Dto,
+  ): Promise<{{pluralCapName}}Entity> {
+    return this.{{pluralName}}Service.create{{capName}}(data);
+  }
+
+  @Mutation()
+  async update{{capName}}(
+    @Args('_id') _id: string,
+    @Args('input') data: Create{{capName}}Dto,
+  ): Promise<{{pluralCapName}}Entity> {
+    const query = new Find{{capName}}Dto({_id : _id});
+    return this.{{pluralName}}Service.update{{capName}}(query, data);
+  }
+
+  @Mutation()
+  async delete{{capName}}(
+    @Args('input') input: Find{{capName}}Dto
+  ): Promise<boolean> {
+    const query = new Find{{capName}}Dto(input);
+
+    return this.{{pluralName}}Service.delete{{capName}}(query);
+  }
+}

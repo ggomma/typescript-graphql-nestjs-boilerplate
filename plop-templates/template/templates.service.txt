@@ -1,0 +1,113 @@
+import { MAX_QUERY_SIZE } from '@/environments';
+import { Injectable } from '@nestjs/common';
+
+import { Create{{capName}}Dto } from './dto/create-{{name}}.dto';
+import { Find{{capName}}Dto } from './dto/find-{{name}}.dto';
+import { Find{{pluralCapName}}PaginationDto } from './dto/find-{{pluralName}}.dto';
+import { {{pluralCapName}}Entity } from './entities/{{pluralName}}.entity';
+import { {{capName}}Repository } from './repositories/{{name}}.repository';
+
+import {
+  ApolloError,
+  ForbiddenError,
+} from 'apollo-server-core'
+
+@Injectable()
+export class {{pluralCapName}}Service {
+  constructor(
+    private readonly {{name}}Repository: {{capName}}Repository,
+  ) {}
+
+  async find{{capName}}(query: Find{{capName}}Dto): Promise<{{pluralCapName}}Entity | undefined> {
+    return await this.{{name}}Repository.findOne({
+      where: query,
+    });
+  }
+
+  async find{{pluralCapName}}({
+    pagination,
+  }: {
+    pagination: Find{{pluralCapName}}PaginationDto;
+  }): Promise<{ {{pluralName}}: Array<{{pluralCapName}}Entity>; total: number }> {
+    const { first, last, after, before, convertedCursorAt } = pagination;
+
+    let queryBuilder = this.{{name}}Repository
+      .createQueryBuilder('{{name}}')
+      .orderBy(convertedCursorAt, 'DESC');
+
+    if (after) {
+      // queryBuilder = queryBuilder.where(`user.${convertedCursorAt} `);
+      queryBuilder = queryBuilder.andWhere(
+        `{{name}}.${convertedCursorAt} < ${after}`,
+      );
+    }
+    if (before) {
+      queryBuilder = queryBuilder.andWhere(
+        `{{name}}.${convertedCursorAt} > ${before}`,
+      );
+    }
+    if (first) {
+      queryBuilder.limit(first > MAX_QUERY_SIZE ? MAX_QUERY_SIZE : first);
+    } else if (last) {
+      queryBuilder
+        .orderBy('ASC')
+        .limit(last > MAX_QUERY_SIZE ? MAX_QUERY_SIZE : last)
+        .orderBy('DESC');
+    } else {
+      queryBuilder.limit(MAX_QUERY_SIZE);
+    }
+
+    const [{{pluralName}}, total] = await queryBuilder.getManyAndCount();
+    return { {{pluralName}}, total };
+  }
+
+  async create{{capName}}(data: Create{{capName}}Dto): Promise<{{pluralCapName}}Entity> {
+    let {{name}} = await this.{{name}}Repository.create(data);
+    const result = await this.{{name}}Repository.save({{name}});
+
+    return result;
+  }
+
+  async delete{{capName}}(query: Find{{capName}}Dto): Promise<boolean> {
+    try {
+      let {{name}} = await this.{{name}}Repository.findOne({
+        where : query
+      });
+
+      if (!{{name}}) {
+        throw new ForbiddenError('{{capName}} not found.')
+      }
+
+      const update{{capName}} = await this.{{name}}Repository.delete({{name}});
+
+      return update{{capName}} ? true : false;
+    } catch (error) {
+      throw new ApolloError(error)
+    }
+  }
+
+  async update{{capName}}(
+    query : Find{{capName}}Dto,
+    data: Create{{capName}}Dto,
+  ): Promise<{{pluralCapName}}Entity> {
+
+    try {
+      let {{name}} = await this.{{name}}Repository.findOne({
+        where : query
+      });
+
+      if (!{{name}}) {
+        throw new ForbiddenError('{{capName}} not found.')
+      }
+
+      const update{{capName}} = await this.{{name}}Repository.save({
+        ...{{name}},
+        ...data
+      });
+
+      return update{{capName}};
+    } catch (error) {
+      throw new ApolloError(error)
+    }
+  }
+}

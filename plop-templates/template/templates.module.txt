@@ -1,0 +1,18 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { {{pluralCapName}}Resolver } from './{{pluralName}}.resolver';
+import { {{pluralCapName}}Service } from './{{pluralName}}.service';
+import { {{capName}}Repository } from './repositories/{{name}}.repository';
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([{{capName}}Repository])
+  ],
+  controllers: [],
+  providers: [
+    {{pluralCapName}}Service,
+    {{pluralCapName}}Resolver,
+  ],
+})
+export class {{pluralCapName}}Module {}

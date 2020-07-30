@@ -1,0 +1,49 @@
+type {{capName}} {
+    _id: ID!
+    title : String!
+}
+
+type {{capName}}Edge {
+    node: {{capName}}!
+    cursor: String!
+}
+
+# The connection, aka the root type of the pagination.
+# https://relay.dev/graphql/connections.htm
+type {{pluralCapName}}Connection {
+    edges: [{{capName}}Edge]
+    pageInfo: PageInfo
+    totalCount: Int
+}
+
+input Find{{capName}}Input {
+    _id: ID
+}
+
+input Create{{capName}}Input {
+    title: String!
+}
+
+
+input Update{{capName}}Input {
+    title: String
+}
+
+type Query {
+    get{{capName}}(input: Find{{capName}}Input): {{capName}}
+    get{{pluralCapName}}(pagination: PaginationInput): {{pluralCapName}}Connection
+}
+
+type Mutation {
+
+    create{{capName}}(
+        input: Create{{capName}}Input!
+    ): Product
+
+    update{{capName}}(
+        _id: String!
+        input: Update{{capName}}Input!
+    ): Product
+
+    delete{{capName}}(input: Find{{capName}}Input!): Boolean
+}

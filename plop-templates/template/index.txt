@@ -1,0 +1,3 @@
+import { {{pluralCapName}}Module } from './{{pluralName}}.module';
+
+export default {{pluralCapName}}Module;
